@@ -1,0 +1,113 @@
+<div class="row">
+  <div class="col-12 col-md-4">
+    <div class="card mb-5">
+      <img [src]="product.image" [alt]="product.title" class="card-img-top">
+
+      <div class="card-body">
+        <h5 class="card-title">{{product.title}}</h5>
+        <p class="card-text">Date: {{product.date}}</p>
+        <p class="card-text">Price: {{product.convertedPrice | currency: product.currency: 'symbol'}}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-md-8">
+    <form [formGroup]="form">
+      <!--Card type-->
+      <div class="row">
+        <div class="col-12 col-md-4 text-left text-md-right"><label for="cardType">Card Type</label></div>
+        <div class="col-12 col-md-8">
+          <ng-container *ngIf="cardTypes$ | async as cardTypes">
+            <div class="form-group">
+              <select id="cardType" formControlName="cardType" class="form-control"
+                      [class.is-invalid]="cardType.invalid && cardType.touched">
+                <option [ngValue]="null" disabled>Select card types</option>
+                <option [ngValue]="cardType.id" *ngFor="let cardType of cardTypes">{{cardType.value}}</option>
+              </select>
+              <div class="invalid-feedback" *ngIf="cardType.hasError('required') && cardType.touched">
+                Card type is required
+              </div>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+      <!--Card number-->
+      <div class="row">
+        <div class="col-12 col-md-4 text-left text-md-right"><label for="cardNumber">Card Number</label></div>
+        <div class="col-12 col-md-8">
+          <div class="form-group">
+            <input type="text" id="cardNumber" formControlName="cardNumber"
+                   [validation]="true"
+                   [mask]="(cardTypeMask$ | async)?.mask"
+                   class="form-control" placeholder="Card number"
+                   [class.is-invalid]="cardNumber.invalid && cardNumber.touched">
+            <div class="invalid-feedback" *ngIf="cardNumber.hasError('pattern') && cardNumber.touched">
+              Card number is not valid
+            </div>
+            <div class="invalid-feedback" *ngIf="cardNumber.hasError('required') && cardNumber.touched">
+              Card number is required
+            </div>
+          </div>
+        </div>
+      </div>
+      <!--Expiration Date-->
+      <div class="row">
+        <div class="col-12 col-md-4 text-left text-md-right"><label for="expiry">Expiration Date</label></div>
+        <div class="col-12 col-md-4">
+          <div class="form-row">
+            <div class="col">
+              <div class="form-group">
+                <input type="text" id="expiry" mask="00/00" formControlName="expiry" class="form-control"
+                       [class.is-invalid]="expiry.invalid && expiry.touched" placeholder="Expiration date">
+                <div class="invalid-feedback" *ngIf="expiry.hasError('required') && expiry.touched">
+                  Expiration date is required
+                </div>
+                <div class="invalid-feedback" *ngIf="expiry.hasError('required') && expiry.touched">
+                  Your card's expiration date is required
+                </div>
+                <div class="invalid-feedback" *ngIf="expiry.hasError('expiryDateInvalid') && expiry.touched">
+                  Your card's expiration date is not valid.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!--Cardholder name-->
+      <div class="row">
+        <div class="col-12 col-md-4 text-left text-md-right"><label for="cardholderName">Cardholder Name</label></div>
+        <div class="col-12 col-md-8">
+          <div class="form-group">
+            <input type="text" id="cardholderName" formControlName="cardholderName" class="form-control"
+                   [class.is-invalid]="cardholderName.invalid && cardholderName.touched" placeholder="Cardholder Name">
+            <div class="invalid-feedback" *ngIf="cardholderName.hasError('required') && cardholderName.touched">
+              Cardholder name is required
+            </div>
+            <div class="invalid-feedback" *ngIf="cardholderName.hasError('pattern') && cardholderName.touched">
+              Cardholder name should contain only letters and spaces
+            </div>
+          </div>
+        </div>
+      </div>
+      <!--Email-->
+      <div class="row">
+        <div class="col-12 col-md-4 text-left text-md-right"><label for="email">Email</label></div>
+        <div class="col-12 col-md-8">
+          <div class="form-group">
+            <input type="text" id="email" formControlName="email" class="form-control"
+                   [class.is-invalid]="email.invalid && email.touched" placeholder="Email">
+            <div class="invalid-feedback" *ngIf="email.hasError('email') && email.touched">
+              Invalid email address
+            </div>
+          </div>
+        </div>
+      </div>
+      <!--Submit-->
+      <div class="row">
+        <div class="col-12 col-md-4"></div>
+        <div class="col-12 col-md-8">
+          <button class="btn btn-block btn-primary" [disabled]="form.invalid">Confirm payment</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

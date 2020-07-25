@@ -1,2 +1,5 @@
+$fa-font-path: "node_modules/font-awesome/fonts"; // for referencing Bootstrap CDN font files directly
+
 @import "node_modules/bootstrap/scss/bootstrap";
+@import "node_modules/font-awesome/scss/font-awesome";
 

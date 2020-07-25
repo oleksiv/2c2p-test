@@ -1,6 +1,6 @@
 <div class="row">
   <div class="col-12 col-md-4">
-    <div class="card mb-5">
+    <div class="card mb-5" [@productAnimation]>
       <img [src]="product.image" [alt]="product.title" class="card-img-top">
 
       <div class="card-body">
@@ -11,15 +11,8 @@
     </div>
   </div>
   <div class="col-12 col-md-8">
-    <ng-container *ngIf="paymentStatusResponse; else paymentForm">
-      <div [ngClass]="{'text-primary': paymentStatusResponse.responseCode === '00', 'text-danger': paymentStatusResponse.responseCode === '01'}">
-        <h1>Message: {{paymentStatusResponse.responseMessage}}</h1>
-        <h2 *ngIf="paymentStatusResponse.invoiceNo">Invoice: #{{paymentStatusResponse.invoiceNo}}</h2>
-        <h2 *ngIf="paymentStatusResponse.approvalCode">Approval Code: {{paymentStatusResponse.approvalCode}}</h2>
-      </div>
-    </ng-container>
     <ng-template #paymentForm>
-      <form [formGroup]="form" (submit)="submitForm()">
+      <form [formGroup]="form" (submit)="submitForm()" [@boxAnimation]>
         <!--Card type-->
         <div class="row">
           <div class="col-12 col-md-4 text-left text-md-right"><label for="cardType">Card Type</label></div>
@@ -44,10 +37,12 @@
           <div class="col-12 col-md-8">
             <div class="form-group">
               <ng-container *ngIf="cardTypeMask$ | async as mask; else cardNumberWithoutMask">
-                <app-input-text formControlName="cardNumber" [mask]="mask.mask" placeholder="Card number" inputClass="form-control"></app-input-text>
+                <app-input-text formControlName="cardNumber" [mask]="mask.mask" placeholder="Card number"
+                                inputClass="form-control"></app-input-text>
               </ng-container>
               <ng-template #cardNumberWithoutMask>
-                <app-input-text formControlName="cardNumber" placeholder="Card number" inputClass="form-control"></app-input-text>
+                <app-input-text formControlName="cardNumber" placeholder="Card number"
+                                inputClass="form-control"></app-input-text>
               </ng-template>
             </div>
           </div>
@@ -59,7 +54,8 @@
             <div class="form-row">
               <div class="col">
                 <div class="form-group">
-                  <app-input-text formControlName="expiry" [mask]="expiryPattern" placeholder="Expiration date" inputClass="form-control"></app-input-text>
+                  <app-input-text formControlName="expiry" [mask]="expiryPattern" placeholder="Expiration date"
+                                  inputClass="form-control"></app-input-text>
                 </div>
               </div>
             </div>
@@ -70,7 +66,8 @@
           <div class="col-12 col-md-4 text-left text-md-right"><label>Cardholder Name</label></div>
           <div class="col-12 col-md-8">
             <div class="form-group">
-              <app-input-text formControlName="cardholderName" [mask]="cardHolderNamePattern" placeholder="Cardholder name" inputClass="form-control"></app-input-text>
+              <app-input-text formControlName="cardholderName" [mask]="cardHolderNamePattern"
+                              placeholder="Cardholder name" inputClass="form-control"></app-input-text>
             </div>
           </div>
         </div>
@@ -91,12 +88,12 @@
           <div class="col-12 col-md-4 text-left text-md-right"></div>
           <div class="col-12 col-md-4">
             <label class="form-group">
-              <input type="radio" formControlName="paymentSucceeds" value="1" /> Payment succeeds
+              <input type="radio" formControlName="paymentSucceeds" value="1"/> Payment succeeds
             </label>
           </div>
           <div class="col-12 col-md-4">
             <label class="form-group">
-              <input type="radio" formControlName="paymentSucceeds" value="" /> Payment fails
+              <input type="radio" formControlName="paymentSucceeds" value=""/> Payment fails
             </label>
           </div>
         </div>
@@ -105,10 +102,32 @@
           <div class="col-12 col-md-4">
           </div>
           <div class="col-12 col-md-8">
-            <button class="btn btn-block btn-primary" [disabled]="form.invalid">Confirm payment</button>
+            <button class="btn btn-block btn-primary" [disabled]="form.invalid || paymentProcessing">
+              <ng-container *ngIf="paymentProcessing; else confirm">
+                Processing your payment
+                <i class="fa fa-circle-o-notch fa-spin ml-1"></i>
+              </ng-container>
+              <ng-template #confirm>Confirm payment</ng-template>
+            </button>
           </div>
         </div>
       </form>
     </ng-template>
+    <ng-container *ngIf="paymentStatusResponse; else paymentForm">
+      <div class="row position-absolute" style="width: 100%; top: 0" [@boxAnimation]>
+        <div class="col-12 col-md-4"></div>
+        <div class="col-12 col-md-8">
+          <div class="card text-white"
+               [ngClass]="{'bg-primary': paymentStatusResponse.responseCode === '00', 'bg-danger': paymentStatusResponse.responseCode === '01'}">
+            <div class="card-header">Payment status</div>
+            <div class="card-body">
+              <h5 class="card-title">Message: {{paymentStatusResponse.responseMessage}}</h5>
+              <p *ngIf="paymentStatusResponse.invoiceNo">Invoice: #{{paymentStatusResponse.invoiceNo}}</p>
+              <p *ngIf="paymentStatusResponse.approvalCode">Approval Code: {{paymentStatusResponse.approvalCode}}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </ng-container>
   </div>
 </div>

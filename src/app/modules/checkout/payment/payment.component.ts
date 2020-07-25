@@ -3,18 +3,45 @@ import {AbstractControl, FormBuilder, FormGroup, ValidatorFn, Validators} from '
 import {Observable, Subscription} from 'rxjs';
 import {CardTypeModel} from '../../../models/card-type.model';
 import {CardService} from '../../../services/card.service';
-import {filter, map, startWith} from 'rxjs/operators';
+import {delay, filter, map, startWith} from 'rxjs/operators';
 import * as moment from 'moment';
 import {ProductModel} from '../../../models/product.model';
 import {plainToClass} from 'class-transformer';
 import {MaskModel} from '../../../models/mask.model';
 import {PaymentResponseModel} from '../../../models/payment-response.model';
+import {animate, style, transition, trigger} from '@angular/animations';
 
 @Component({
   selector: 'app-payment',
   templateUrl: './payment.component.html',
   styleUrls: ['./payment.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  animations: [
+    trigger(
+      'boxAnimation', [
+        transition(':enter', [
+          style({transform: 'translateY(-100%)', opacity: 0}),
+          animate('500ms', style({transform: 'translateY(0)', opacity: 1}))
+        ]),
+        transition(':leave', [
+          style({transform: 'translateY(0)', opacity: 1}),
+          animate('500ms', style({transform: 'translateY(-100%)', opacity: 0}))
+        ])
+      ],
+    ),
+    trigger(
+      'productAnimation', [
+        transition(':enter', [
+          style({transform: 'translateX(-100%)', opacity: 0}),
+          animate('500ms', style({transform: 'translateX(0)', opacity: 1}))
+        ]),
+        transition(':leave', [
+          style({transform: 'translateX(0)', opacity: 1}),
+          animate('500ms', style({transform: 'translateX(-100%)', opacity: 0}))
+        ])
+      ],
+    )
+  ],
 })
 export class PaymentComponent implements OnInit, OnDestroy {
 
@@ -30,6 +57,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
   expiryPattern = '00/00';
   cardHolderNamePattern: RegExp = /^[A-Za-z\s]+$/;
   paymentStatusResponse: PaymentResponseModel;
+  paymentProcessing = false;
 
   cardTypes$: Observable<CardTypeModel[]>;
   cardTypeMask$: Observable<MaskModel>;
@@ -107,9 +135,14 @@ export class PaymentComponent implements OnInit, OnDestroy {
   }
 
   submitForm() {
+    this.paymentProcessing = true;
     this.subscription.add(
-      this.cardService.submitPayment(this.form.value).subscribe((result: PaymentResponseModel) => {
+      this.cardService.submitPayment(this.form.value).pipe(
+        // Simulate server delay of 2 seconds
+        delay(2000)
+      ).subscribe((result: PaymentResponseModel) => {
         this.paymentStatusResponse = result;
+        this.paymentProcessing = false;
         this.changeDetectorRef.detectChanges();
       })
     );
@@ -117,14 +150,14 @@ export class PaymentComponent implements OnInit, OnDestroy {
 
   private expiryDateValidator(): ValidatorFn {
     return (control: AbstractControl): { [key: string]: any } | null => {
-      // Dont validate if control is empty
+
       if (!control.value) {
-        return null;
+        return {expiryDateInvalid: control.value};
       }
 
       // Dont validate if control does not have 4 digits
       if (control.value.length < 4) {
-        return null;
+        return {expiryDateInvalid: control.value};
       }
 
       return moment(control.value, 'MMYY').isSameOrAfter(moment()) ? null : {expiryDateInvalid: control.value};

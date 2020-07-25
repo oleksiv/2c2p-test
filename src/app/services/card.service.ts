@@ -40,7 +40,7 @@ export class CardService {
   }
 
   cardTypes(): Observable<CardTypeModel[]> {
-    return this.http.get('http://www.mocky.io/v2/5d145fa22f0000ff3ec4f030').pipe(
+    return this.http.get('https://www.mocky.io/v2/5d145fa22f0000ff3ec4f030').pipe(
       map((response: any) => response.cardTypes.map((cardType: CardTypeModel) => plainToClass(CardTypeModel, cardType))),
     );
   }
@@ -54,11 +54,11 @@ export class CardService {
   }
 
   protected submitPaymentSuccess(data): Observable<any> {
-    return this.http.post('http://www.mocky.io/v2/5d8de422310000b19d2b517a', data);
+    return this.http.post('https://www.mocky.io/v2/5d8de422310000b19d2b517a', data);
   }
 
   protected submitPaymentFailing(data): Observable<any> {
-    return this.http.post('http://www.mocky.io/v2/5d8de441310000a2612b517c', data).pipe(
+    return this.http.post('https://www.mocky.io/v2/5d8de441310000a2612b517c', data).pipe(
       catchError((error) => of(error.error))
     );
   }

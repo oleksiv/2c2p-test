@@ -8,6 +8,7 @@ import * as moment from 'moment';
 import {ProductModel} from '../../../models/product.model';
 import {plainToClass} from 'class-transformer';
 import {MaskModel} from '../../../models/mask.model';
+import {PaymentResponseModel} from '../../../models/payment-response.model';
 
 @Component({
   selector: 'app-payment',
@@ -26,6 +27,9 @@ export class PaymentComponent implements OnInit, OnDestroy {
     currency: 'USD',
     image: 'https://jabko.ua/image/cache/catalog/files_com/jabko_black/iphone/iphone-11/black/11-black-test-700x700.jpg',
   });
+  expiryPattern = '00/00';
+  cardHolderNamePattern: RegExp = /^[A-Za-z\s]+$/;
+  paymentStatusResponse: PaymentResponseModel;
 
   cardTypes$: Observable<CardTypeModel[]>;
   cardTypeMask$: Observable<MaskModel>;
@@ -41,15 +45,20 @@ export class PaymentComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     // Init the form
     this.form = this.fb.group({
-      cardType: this.fb.control(null, [Validators.required]),
-      cardNumber: this.fb.control({value: null, disabled: true}, [Validators.required]),
-      expiry: this.fb.control(null, [Validators.required, Validators.minLength(4), this.expiryDateValidator()]),
+      cardType: this.fb.control('1', [Validators.required]),
+      cardNumber: this.fb.control(1111111111111111, [Validators.required]),
+      expiry: this.fb.control('1122', [Validators.required, Validators.minLength(4), this.expiryDateValidator()]),
       // expiryMonth is a hidden field and is not supposed to be validated
       expiryMonth: this.fb.control(null),
       // expiryYear is a hidden field and is not supposed to be validated
       expiryYear: this.fb.control(null),
-      cardholderName: this.fb.control(null, [Validators.required, Validators.max(50), Validators.pattern('^[A-Za-z\\s]+$')]),
-      email: this.fb.control(null, [Validators.email])
+      cardholderName: this.fb.control('Sviatoslav Oleksiv', [
+        Validators.required,
+        Validators.max(50),
+        Validators.pattern(this.cardHolderNamePattern)
+      ]),
+      email: this.fb.control(null, [Validators.email]),
+      paymentSucceeds: this.fb.control('1'),
     });
 
     // Fetch card types as observable
@@ -97,7 +106,16 @@ export class PaymentComponent implements OnInit, OnDestroy {
     this.subscription.unsubscribe();
   }
 
-  expiryDateValidator(): ValidatorFn {
+  submitForm() {
+    this.subscription.add(
+      this.cardService.submitPayment(this.form.value).subscribe((result: PaymentResponseModel) => {
+        this.paymentStatusResponse = result;
+        this.changeDetectorRef.detectChanges();
+      })
+    );
+  }
+
+  private expiryDateValidator(): ValidatorFn {
     return (control: AbstractControl): { [key: string]: any } | null => {
       // Dont validate if control is empty
       if (!control.value) {

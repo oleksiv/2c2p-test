@@ -1,5 +1,5 @@
 export class MaskModel {
   id: string;
-  mask: string;
-  pattern: string;
+  mask: any;
+  pattern: RegExp;
 }

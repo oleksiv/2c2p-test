@@ -1,0 +1,19 @@
+<input
+  #input
+  (keyup)="onMaskInput($event)"
+  (blur)="onTouched()"
+  [disabled]="disabled"
+  [placeholder]="placeholder"
+  [type]="type"
+  [class]="inputClass"
+  [class.is-invalid]="controlDir.control.invalid && controlDir.control.touched"
+>
+<div class="invalid-feedback" *ngIf="controlDir.control.hasError('pattern') && controlDir.control.touched">
+  Field is not valid
+</div>
+<div class="invalid-feedback" *ngIf="controlDir.control.hasError('required') && controlDir.control.touched">
+  Field is required
+</div>
+<div class="invalid-feedback" *ngIf="controlDir.control.hasError('expiryDateInvalid') && controlDir.control.touched">
+  Your card's expiration date is not valid.
+</div>

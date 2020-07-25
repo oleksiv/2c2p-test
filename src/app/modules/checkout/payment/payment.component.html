@@ -11,103 +11,104 @@
     </div>
   </div>
   <div class="col-12 col-md-8">
-    <form [formGroup]="form">
-      <!--Card type-->
-      <div class="row">
-        <div class="col-12 col-md-4 text-left text-md-right"><label for="cardType">Card Type</label></div>
-        <div class="col-12 col-md-8">
-          <ng-container *ngIf="cardTypes$ | async as cardTypes">
-            <div class="form-group">
-              <select id="cardType" formControlName="cardType" class="form-control"
-                      [class.is-invalid]="cardType.invalid && cardType.touched">
-                <option [ngValue]="null" disabled>Select card types</option>
-                <option [ngValue]="cardType.id" *ngFor="let cardType of cardTypes">{{cardType.value}}</option>
-              </select>
-              <div class="invalid-feedback" *ngIf="cardType.hasError('required') && cardType.touched">
-                Card type is required
-              </div>
-            </div>
-          </ng-container>
-        </div>
+    <ng-container *ngIf="paymentStatusResponse; else paymentForm">
+      <div [ngClass]="{'text-primary': paymentStatusResponse.responseCode === '00', 'text-danger': paymentStatusResponse.responseCode === '01'}">
+        <h1>Message: {{paymentStatusResponse.responseMessage}}</h1>
+        <h2 *ngIf="paymentStatusResponse.invoiceNo">Invoice: #{{paymentStatusResponse.invoiceNo}}</h2>
+        <h2 *ngIf="paymentStatusResponse.approvalCode">Approval Code: {{paymentStatusResponse.approvalCode}}</h2>
       </div>
-      <!--Card number-->
-      <div class="row">
-        <div class="col-12 col-md-4 text-left text-md-right"><label for="cardNumber">Card Number</label></div>
-        <div class="col-12 col-md-8">
-          <div class="form-group">
-            <input type="text" id="cardNumber" formControlName="cardNumber"
-                   [validation]="true"
-                   [mask]="(cardTypeMask$ | async)?.mask"
-                   class="form-control" placeholder="Card number"
-                   [class.is-invalid]="cardNumber.invalid && cardNumber.touched">
-            <div class="invalid-feedback" *ngIf="cardNumber.hasError('pattern') && cardNumber.touched">
-              Card number is not valid
-            </div>
-            <div class="invalid-feedback" *ngIf="cardNumber.hasError('required') && cardNumber.touched">
-              Card number is required
-            </div>
-          </div>
-        </div>
-      </div>
-      <!--Expiration Date-->
-      <div class="row">
-        <div class="col-12 col-md-4 text-left text-md-right"><label for="expiry">Expiration Date</label></div>
-        <div class="col-12 col-md-4">
-          <div class="form-row">
-            <div class="col">
+    </ng-container>
+    <ng-template #paymentForm>
+      <form [formGroup]="form" (submit)="submitForm()">
+        <!--Card type-->
+        <div class="row">
+          <div class="col-12 col-md-4 text-left text-md-right"><label for="cardType">Card Type</label></div>
+          <div class="col-12 col-md-8">
+            <ng-container *ngIf="cardTypes$ | async as cardTypes">
               <div class="form-group">
-                <input type="text" id="expiry" mask="00/00" formControlName="expiry" class="form-control"
-                       [class.is-invalid]="expiry.invalid && expiry.touched" placeholder="Expiration date">
-                <div class="invalid-feedback" *ngIf="expiry.hasError('required') && expiry.touched">
-                  Expiration date is required
+                <select id="cardType" formControlName="cardType" class="form-control"
+                        [class.is-invalid]="cardType.invalid && cardType.touched">
+                  <option [ngValue]="null" disabled>Select card types</option>
+                  <option [ngValue]="cardType.id" *ngFor="let cardType of cardTypes">{{cardType.value}}</option>
+                </select>
+                <div class="invalid-feedback" *ngIf="cardType.hasError('required') && cardType.touched">
+                  Card type is required
                 </div>
-                <div class="invalid-feedback" *ngIf="expiry.hasError('required') && expiry.touched">
-                  Your card's expiration date is required
-                </div>
-                <div class="invalid-feedback" *ngIf="expiry.hasError('expiryDateInvalid') && expiry.touched">
-                  Your card's expiration date is not valid.
+              </div>
+            </ng-container>
+          </div>
+        </div>
+        <!--Card number-->
+        <div class="row">
+          <div class="col-12 col-md-4 text-left text-md-right"><label>Card Number</label></div>
+          <div class="col-12 col-md-8">
+            <div class="form-group">
+              <ng-container *ngIf="cardTypeMask$ | async as mask; else cardNumberWithoutMask">
+                <app-input-text formControlName="cardNumber" [mask]="mask.mask" placeholder="Card number" inputClass="form-control"></app-input-text>
+              </ng-container>
+              <ng-template #cardNumberWithoutMask>
+                <app-input-text formControlName="cardNumber" placeholder="Card number" inputClass="form-control"></app-input-text>
+              </ng-template>
+            </div>
+          </div>
+        </div>
+        <!--Expiration Date-->
+        <div class="row">
+          <div class="col-12 col-md-4 text-left text-md-right"><label>Expiration Date</label></div>
+          <div class="col-12 col-md-4">
+            <div class="form-row">
+              <div class="col">
+                <div class="form-group">
+                  <app-input-text formControlName="expiry" [mask]="expiryPattern" placeholder="Expiration date" inputClass="form-control"></app-input-text>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-      <!--Cardholder name-->
-      <div class="row">
-        <div class="col-12 col-md-4 text-left text-md-right"><label for="cardholderName">Cardholder Name</label></div>
-        <div class="col-12 col-md-8">
-          <div class="form-group">
-            <input type="text" id="cardholderName" formControlName="cardholderName" class="form-control"
-                   [class.is-invalid]="cardholderName.invalid && cardholderName.touched" placeholder="Cardholder Name">
-            <div class="invalid-feedback" *ngIf="cardholderName.hasError('required') && cardholderName.touched">
-              Cardholder name is required
-            </div>
-            <div class="invalid-feedback" *ngIf="cardholderName.hasError('pattern') && cardholderName.touched">
-              Cardholder name should contain only letters and spaces
+        <!--Cardholder name-->
+        <div class="row">
+          <div class="col-12 col-md-4 text-left text-md-right"><label>Cardholder Name</label></div>
+          <div class="col-12 col-md-8">
+            <div class="form-group">
+              <app-input-text formControlName="cardholderName" [mask]="cardHolderNamePattern" placeholder="Cardholder name" inputClass="form-control"></app-input-text>
             </div>
           </div>
         </div>
-      </div>
-      <!--Email-->
-      <div class="row">
-        <div class="col-12 col-md-4 text-left text-md-right"><label for="email">Email</label></div>
-        <div class="col-12 col-md-8">
-          <div class="form-group">
-            <input type="text" id="email" formControlName="email" class="form-control"
-                   [class.is-invalid]="email.invalid && email.touched" placeholder="Email">
-            <div class="invalid-feedback" *ngIf="email.hasError('email') && email.touched">
-              Invalid email address
+        <!--Email-->
+        <div class="row">
+          <div class="col-12 col-md-4 text-left text-md-right"><label for="email">Email</label></div>
+          <div class="col-12 col-md-8">
+            <div class="form-group">
+              <input type="text" id="email" formControlName="email" class="form-control"
+                     [class.is-invalid]="email.invalid && email.touched" placeholder="Email">
+              <div class="invalid-feedback" *ngIf="email.hasError('email') && email.touched">
+                Invalid email address
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      <!--Submit-->
-      <div class="row">
-        <div class="col-12 col-md-4"></div>
-        <div class="col-12 col-md-8">
-          <button class="btn btn-block btn-primary" [disabled]="form.invalid">Confirm payment</button>
+        <div class="row">
+          <div class="col-12 col-md-4 text-left text-md-right"></div>
+          <div class="col-12 col-md-4">
+            <label class="form-group">
+              <input type="radio" formControlName="paymentSucceeds" value="1" /> Payment succeeds
+            </label>
+          </div>
+          <div class="col-12 col-md-4">
+            <label class="form-group">
+              <input type="radio" formControlName="paymentSucceeds" value="" /> Payment fails
+            </label>
+          </div>
         </div>
-      </div>
-    </form>
+        <!--Submit-->
+        <div class="row">
+          <div class="col-12 col-md-4">
+          </div>
+          <div class="col-12 col-md-8">
+            <button class="btn btn-block btn-primary" [disabled]="form.invalid">Confirm payment</button>
+          </div>
+        </div>
+      </form>
+    </ng-template>
   </div>
 </div>

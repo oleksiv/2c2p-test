@@ -1,6 +1,11 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 
-import { InputTextComponent } from './input-text.component';
+import {InputTextComponent} from './input-text.component';
+import {FormControl, FormsModule, ReactiveFormsModule} from '@angular/forms';
+import {CardService} from '../../../services/card.service';
+import {HttpClientModule} from '@angular/common/http';
+import {MaskModel} from '../../../models/mask.model';
+import {plainToClass} from 'class-transformer';
 
 describe('InputTextComponent', () => {
   let component: InputTextComponent;
@@ -8,14 +13,23 @@ describe('InputTextComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ InputTextComponent ]
+      declarations: [InputTextComponent],
+      imports: [
+        FormsModule,
+        ReactiveFormsModule,
+        HttpClientModule,
+      ],
+      providers: [
+        CardService,
+      ],
     })
-    .compileComponents();
+      .compileComponents();
   }));
 
   beforeEach(() => {
     fixture = TestBed.createComponent(InputTextComponent);
     component = fixture.componentInstance;
+    component.control = new FormControl();
     fixture.detectChanges();
   });
 

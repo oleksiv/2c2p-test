@@ -4,12 +4,14 @@ import {Observable, of} from 'rxjs';
 import {CardTypeModel} from '../models/card-type.model';
 import {catchError, map} from 'rxjs/operators';
 import {plainToClass} from 'class-transformer';
+import {MaskModel} from '../models/mask.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CardService {
-  readonly cardMasks = [
+  readonly filterCardsIds = ['3'];
+  readonly cardMasks: MaskModel[] = [
     // Visa
     {
       id: '1',
@@ -42,11 +44,15 @@ export class CardService {
   cardTypes(): Observable<CardTypeModel[]> {
     return this.http.get('https://www.mocky.io/v2/5d145fa22f0000ff3ec4f030').pipe(
       map((response: any) => response.cardTypes.map((cardType: CardTypeModel) => plainToClass(CardTypeModel, cardType))),
+      // Filter cards
+      map((cards: CardTypeModel[]) =>
+        cards.filter((card: CardTypeModel) => !this.filterCardsIds.some((filterCardId: string) => filterCardId === card.id))
+      )
     );
   }
 
   submitPayment(data) {
-    if (data.paymentSucceeds) {
+    if (data.paymentShouldSucceed) {
       return this.submitPaymentSuccess(data);
     }
 

@@ -1,0 +1,9 @@
+<div class="card text-white"
+     [ngClass]="{'bg-primary': paymentStatusResponse.responseCode === '00', 'bg-danger': paymentStatusResponse.responseCode === '01'}">
+  <div class="card-header">Payment status</div>
+  <div class="card-body">
+    <h5 class="card-title">Message: {{paymentStatusResponse.responseMessage}}</h5>
+    <p *ngIf="paymentStatusResponse.invoiceNo">Invoice: #{{paymentStatusResponse.invoiceNo}}</p>
+    <p *ngIf="paymentStatusResponse.approvalCode">Approval Code: {{paymentStatusResponse.approvalCode}}</p>
+  </div>
+</div>

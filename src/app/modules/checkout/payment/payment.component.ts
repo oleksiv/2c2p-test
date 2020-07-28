@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
-import {AbstractControl, FormBuilder, FormGroup, ValidatorFn, Validators} from '@angular/forms';
+import {AbstractControl, FormBuilder, FormControl, FormGroup, ValidatorFn, Validators} from '@angular/forms';
 import {Observable, Subscription} from 'rxjs';
 import {CardTypeModel} from '../../../models/card-type.model';
 import {CardService} from '../../../services/card.service';
@@ -10,6 +10,7 @@ import {plainToClass} from 'class-transformer';
 import {MaskModel} from '../../../models/mask.model';
 import {PaymentResponseModel} from '../../../models/payment-response.model';
 import {animate, style, transition, trigger} from '@angular/animations';
+import {InputSelectOptionModel} from '../../../models/input-select-option.model';
 
 @Component({
   selector: 'app-payment',
@@ -47,6 +48,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
 
   form: FormGroup;
   subscription = new Subscription();
+  // Mock the product
   product: ProductModel = plainToClass(ProductModel, {
     title: 'IPhone Pro 11',
     date: '24/07/2020',
@@ -59,9 +61,8 @@ export class PaymentComponent implements OnInit, OnDestroy {
   paymentStatusResponse: PaymentResponseModel;
   paymentProcessing = false;
 
-  cardTypes$: Observable<CardTypeModel[]>;
+  cardTypes$: Observable<InputSelectOptionModel[]>;
   cardTypeMask$: Observable<MaskModel>;
-
 
   constructor(
     private fb: FormBuilder,
@@ -74,8 +75,8 @@ export class PaymentComponent implements OnInit, OnDestroy {
     // Init the form
     this.form = this.fb.group({
       cardType: this.fb.control('1', [Validators.required]),
-      cardNumber: this.fb.control(1111111111111111, [Validators.required]),
-      expiry: this.fb.control('1122', [Validators.required, Validators.minLength(4), this.expiryDateValidator()]),
+      cardNumber: this.fb.control('1111111111111111', [Validators.required]),
+      expiry: this.fb.control('1122', [Validators.required, this.expiryDateValidator()]),
       // expiryMonth is a hidden field and is not supposed to be validated
       expiryMonth: this.fb.control(null),
       // expiryYear is a hidden field and is not supposed to be validated
@@ -86,11 +87,18 @@ export class PaymentComponent implements OnInit, OnDestroy {
         Validators.pattern(this.cardHolderNamePattern)
       ]),
       email: this.fb.control(null, [Validators.email]),
-      paymentSucceeds: this.fb.control('1'),
+      paymentShouldSucceed: this.fb.control('1'),
     });
 
     // Fetch card types as observable
-    this.cardTypes$ = this.cardService.cardTypes();
+    this.cardTypes$ = this.cardService.cardTypes().pipe(
+      map((cardTypes: CardTypeModel[]) => cardTypes.map((cardType) => {
+        return {
+          value: cardType.id,
+          title: cardType.value,
+        };
+      }))
+    );
 
     this.cardTypeMask$ = this.cardType.valueChanges.pipe(
       startWith(this.cardType.value as string),
@@ -152,43 +160,47 @@ export class PaymentComponent implements OnInit, OnDestroy {
     return (control: AbstractControl): { [key: string]: any } | null => {
 
       if (!control.value) {
-        return {expiryDateInvalid: control.value};
+        return;
       }
 
       // Dont validate if control does not have 4 digits
       if (control.value.length < 4) {
-        return {expiryDateInvalid: control.value};
+        return {expiryDateInvalid: 'Expiration date format should be XX/XX'};
       }
 
-      return moment(control.value, 'MMYY').isSameOrAfter(moment()) ? null : {expiryDateInvalid: control.value};
+      if (!moment(control.value, 'MMYY').isValid()) {
+        return {expiryDateInvalid: 'Expiration date is invalid.'};
+      }
+
+      return moment(control.value, 'MMYY').isSameOrAfter(moment()) ? null : {expiryDateInvalid: 'Your card\'s expiration year is in the past.'};
     };
   }
 
   get cardType() {
-    return this.form.get('cardType');
+    return this.form.get('cardType') as FormControl;
   }
 
   get cardNumber() {
-    return this.form.get('cardNumber');
+    return this.form.get('cardNumber') as FormControl;
+  }
+
+  get cardHolderName() {
+    return this.form.get('cardholderName') as FormControl;
   }
 
   get expiry() {
-    return this.form.get('expiry');
+    return this.form.get('expiry') as FormControl;
   }
 
   get expiryMonth() {
-    return this.form.get('expiryMonth');
+    return this.form.get('expiryMonth') as FormControl;
   }
 
   get expiryYear() {
-    return this.form.get('expiryYear');
-  }
-
-  get cardholderName() {
-    return this.form.get('cardholderName');
+    return this.form.get('expiryYear') as FormControl;
   }
 
   get email() {
-    return this.form.get('email');
+    return this.form.get('email') as FormControl;
   }
 }

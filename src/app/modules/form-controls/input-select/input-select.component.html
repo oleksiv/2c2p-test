@@ -1,0 +1,11 @@
+<select [formControl]="control" class="form-control"
+        [class.is-invalid]="control.invalid && control.touched">
+  <option [ngValue]="null" disabled>Select card types</option>
+  <option [ngValue]="option.value" *ngFor="let option of options">{{option.title}}</option>
+</select>
+
+<ng-container *ngIf="listOfErrors as errors">
+  <ul class="invalid-feedback m-0 p-0 pt-2" *ngIf="errors.length && control.touched">
+    <li class="d-block" *ngFor="let error of errors">{{error}}</li>
+  </ul>
+</ng-container>

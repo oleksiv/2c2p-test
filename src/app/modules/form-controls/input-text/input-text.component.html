@@ -1,19 +1,17 @@
 <input
   #input
-  (keyup)="onMaskInput($event)"
-  (blur)="onTouched()"
-  [disabled]="disabled"
   [placeholder]="placeholder"
   [type]="type"
   [class]="inputClass"
-  [class.is-invalid]="controlDir.control.invalid && controlDir.control.touched"
+  (keyup)="keyUpEvent($event)"
+  (blur)="blurEvent($event)"
+  [class.is-invalid]="control.invalid && control.touched"
 >
-<div class="invalid-feedback" *ngIf="controlDir.control.hasError('pattern') && controlDir.control.touched">
-  Field is not valid
-</div>
-<div class="invalid-feedback" *ngIf="controlDir.control.hasError('required') && controlDir.control.touched">
-  Field is required
-</div>
-<div class="invalid-feedback" *ngIf="controlDir.control.hasError('expiryDateInvalid') && controlDir.control.touched">
-  Your card's expiration date is not valid.
-</div>
+<ng-container *ngIf="listOfErrors as errors">
+  <ul class="invalid-feedback m-0 p-0 pt-2" *ngIf="errors.length && control.touched">
+    <li class="d-block" *ngFor="let error of errors">{{error}}</li>
+  </ul>
+</ng-container>
+
+<!-- This input is here to avoid generating transformed value from mask -->
+<input type="hidden" [formControl]="control">
